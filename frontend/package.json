@@ -10,8 +10,9 @@
     "test": "jest"
   },
   "dependencies": {
-    "@starknet-react/chains": "^0.2.0",
-    "@starknet-react/core": "^2.0.0",
+    "@starknet-react/chains": "^3.0.6",
+    "@starknet-react/core": "^3.7.4",
+    "lucide-react": "^0.575.0",
     "next": "14.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -34,4 +35,3 @@
     "typescript": "^5.0.0"
   }
 }
-
