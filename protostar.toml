@@ -1,0 +1,17 @@
+[project]
+protostar_version = "0.9.1"
+
+[contracts]
+policy_registry = ["contracts/policy_registry.cairo"]
+proof_verifier = ["contracts/proof_verifier.cairo"]
+gate_adapter = ["contracts/gate_adapter.cairo"]
+mock_erc20 = ["contracts/mocks/mock_erc20.cairo"]
+merkle_utils = ["contracts/merkle_utils.cairo"]
+
+[scripts]
+deploy_testnet = "scripts/deploy_testnet.sh"
+run_local_dev = "scripts/run_local_dev.sh"
+
+[profiles.devnet]
+network = "http://127.0.0.1:5050"
+
