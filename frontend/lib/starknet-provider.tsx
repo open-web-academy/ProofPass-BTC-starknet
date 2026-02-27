@@ -8,9 +8,18 @@ import {
   braavos,
   useInjectedConnectors,
 } from "@starknet-react/core";
-import type { Chain } from "@starknet-react/chains";
 
 const rpcUrl = process.env.NEXT_PUBLIC_STARKNET_RPC_URL || "http://127.0.0.1:5050";
+
+/** Minimal chain shape expected by StarknetConfig (no @starknet-react/chains dependency). */
+type Chain = {
+  id: number;
+  name: string;
+  network: string;
+  nativeCurrency: { name: string; symbol: string; decimals: number };
+  rpcUrls: { default: { http: string[] }; public: { http: string[] } };
+  blockExplorers?: { default: { name: string; url: string } };
+};
 
 const devnet = (rpc: string): Chain => ({
   id: 1537,
