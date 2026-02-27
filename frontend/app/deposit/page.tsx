@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useContract, useSendTransaction } from "@starknet-react/core";
+import { useAccount, useContract, useContractWrite } from "@starknet-react/core";
 import { GATE_ADAPTER_ABI } from "../../lib/abis";
 import { useStoredProof } from "../../hooks/useStoredProof";
 
@@ -22,7 +22,7 @@ export default function DepositPage() {
     address: GATE_ADAPTER_ADDRESS,
   });
 
-  const { sendAsync } = useSendTransaction();
+  const { writeAsync } = useContractWrite({});
 
   const onDeposit = async () => {
     if (!address) {
@@ -47,16 +47,16 @@ export default function DepositPage() {
       const calls =
         contract && (contract as any).populate
           ? [
-              (contract as any).populate("deposit", [
-                BigInt(proof.policy_id),
-                BigInt(proof.proof_id),
-                0x1n, // proof_blob_ptr (special stub value)
-                BigInt(proof.tier), // public_inputs_ptr -> tier
-                BigInt(proof.nullifier),
-                BigInt(proof.expiry_ts),
-                { low: amountLow, high: amountHigh },
-              ]),
-            ]
+            (contract as any).populate("deposit", [
+              BigInt(proof.policy_id),
+              BigInt(proof.proof_id),
+              0x1n, // proof_blob_ptr (special stub value)
+              BigInt(proof.tier), // public_inputs_ptr -> tier
+              BigInt(proof.nullifier),
+              BigInt(proof.expiry_ts),
+              { low: amountLow, high: amountHigh },
+            ]),
+          ]
           : undefined;
 
       if (!calls) {
@@ -65,7 +65,7 @@ export default function DepositPage() {
 
       setStatusMessage("Sending transaction to Starknet...");
 
-      const tx = await sendAsync({ calls });
+      const tx = await writeAsync({ calls });
 
       setStatusMessage(`Transaction sent: ${tx.transaction_hash}`);
     } catch (e: any) {

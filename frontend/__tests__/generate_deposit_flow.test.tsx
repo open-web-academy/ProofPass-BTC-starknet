@@ -2,7 +2,7 @@ import { POST as generateProofHandler } from "../app/api/generate-proof/route";
 
 describe("Generate → Deposit flow (minimal integration stub)", () => {
   it("returns a simulated proof payload from /api/generate-proof", async () => {
-    // @ts-expect-error NextRequest is created by Next.js runtime; here we stub the body.
+    // NextRequest is created by Next.js runtime; here we stub the body.
     const req = {
       json: async () => ({
         walletAddress: "0x123",
