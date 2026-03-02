@@ -91,7 +91,8 @@ func transferFrom{
 
     let (recipient_low, recipient_high) = balance_of.read(recipient)
     let recipient_balance = Uint256(low=recipient_low, high=recipient_high)
-    let (new_recipient_balance) = uint256_add(recipient_balance, amount)
+    // uint256_add returns (res : Uint256, carry : felt) — carry must be captured.
+    let (new_recipient_balance, carry) = uint256_add(recipient_balance, amount)
     balance_of.write(recipient, new_recipient_balance.low, new_recipient_balance.high)
 
     // Decrease allowance.

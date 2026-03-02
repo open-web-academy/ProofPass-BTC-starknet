@@ -4,9 +4,9 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.math import assert_le
 from starkware.starknet.common.syscalls import get_block_timestamp
 
-from starkware.starknet.common.storage import Storage
 from contracts.external_verifier import call_external_verifier
 
 // Storage: used_nullifier(nullifier) -> felt (1 if used)
@@ -39,27 +39,22 @@ func verify_and_register{
     alloc_locals
 
     // 1) Check expiry using current block timestamp.
+    // assert_le(a, b) asserts a <= b; reverts if current_ts > expiry_ts (proof expired).
     let (current_ts) = get_block_timestamp()
-    if expiry_ts < current_ts:
-        with_attr error_message("PROOF_EXPIRED"):
-            assert 0 = 1
-        end
+    with_attr error_message("PROOF_EXPIRED"):
+        assert_le(current_ts, expiry_ts)
     end
 
     // 2) Check nullifier not used.
     let (already_used) = used_nullifier.read(nullifier)
-    if already_used != 0:
-        with_attr error_message("NULLIFIER_ALREADY_USED"):
-            assert 0 = 1
-        end
+    with_attr error_message("NULLIFIER_ALREADY_USED"):
+        assert already_used = 0
     end
 
     // 3) Call external verifier stub.
     let (ok_verifier) = call_external_verifier(proof_blob_ptr, public_inputs_ptr, public_inputs_len)
-    if ok_verifier != 1:
-        with_attr error_message("INVALID_PROOF"):
-            assert 0 = 1
-        end
+    with_attr error_message("INVALID_PROOF"):
+        assert ok_verifier = 1
     end
 
     // 4) Mark nullifier as used.
