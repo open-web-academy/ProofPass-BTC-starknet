@@ -5,7 +5,6 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_add
 from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
-from starkware.starknet.common.storage import Storage
 
 // -------------------------
 // Storage
@@ -106,10 +105,8 @@ func deposit{
         nullifier=nullifier,
         expiry_ts=expiry_ts
     )
-    if ok_verifier != 1:
-        with_attr error_message("PROOF_NOT_VALID"):
-            assert 0 = 1
-        end
+    with_attr error_message("PROOF_NOT_VALID"):
+        assert ok_verifier = 1
     end
 
     // 3) Transfer strkBTC from user to this contract.
@@ -119,16 +116,15 @@ func deposit{
     let (success) = IERC20.transferFrom(
         contract_address=token_addr, sender=caller, recipient=this_addr, amount=amount
     )
-    if success != 1:
-        with_attr error_message("TRANSFER_FAILED"):
-            assert 0 = 1
-        end
+    with_attr error_message("TRANSFER_FAILED"):
+        assert success = 1
     end
 
     // 4) Update demo on-chain balance for the caller.
+    // uint256_add returns (res : Uint256, carry : felt) — carry must be captured.
     let (prev_low, prev_high) = balances.read(caller)
     let prev_balance = Uint256(low=prev_low, high=prev_high)
-    let (new_balance) = uint256_add(prev_balance, amount)
+    let (new_balance, carry) = uint256_add(prev_balance, amount)
     balances.write(caller, new_balance.low, new_balance.high)
 
     return ()
