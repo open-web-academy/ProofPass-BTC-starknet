@@ -22,7 +22,7 @@ type Chain = {
 };
 
 const devnet = (rpc: string): Chain => ({
-  id: 1537n,
+  id: BigInt("0x534e5f5345504f4c4941"), // SN_SEPOLIA
   name: "Local Devnet",
   network: "devnet",
   nativeCurrency: { name: "STRK", symbol: "STRK", decimals: 18, address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" },
@@ -49,7 +49,7 @@ export function StarknetProvider({ children }: { children: ReactNode }) {
   });
 
   return (
-    <StarknetConfig chains={[devnet(rpcUrl)]} provider={provider} connectors={connectors}>
+    <StarknetConfig autoConnect chains={[devnet(rpcUrl)]} provider={provider} connectors={connectors}>
       {children}
     </StarknetConfig>
   );

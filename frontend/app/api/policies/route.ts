@@ -26,20 +26,23 @@ export async function GET() {
       provider
     );
 
-    // For this demo, we assume a few fixed policy IDs.
-    const policyIds = ["1", "2", "3"];
+    const policyDefinitions = [
+      { id: "1", name: "No sanctions (OFAC Check)" },
+      { id: "2", name: "Wallet Age > 1 year" },
+      { id: "3", name: "Not linked to Tornado Cash" },
+    ];
 
     const policies = [];
-    for (const id of policyIds) {
+    for (const def of policyDefinitions) {
       try {
-        const res = await contract.call("get_policy_commitment", [BigInt(id)]);
+        const res = await contract.call("get_policy_commitment", [BigInt(def.id)]);
         const commitment =
           Array.isArray(res) && res.length > 0
             ? res[0].toString()
             : "0x0";
-        policies.push({ id, commitment });
+        policies.push({ id: def.id, name: def.name, commitment });
       } catch {
-        policies.push({ id, commitment: "0x0" });
+        policies.push({ id: def.id, name: def.name, commitment: "0x0" });
       }
     }
 

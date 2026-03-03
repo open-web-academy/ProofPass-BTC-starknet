@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useContract, useContractWrite } from "@starknet-react/core";
+import { useAccount, useContract, useSendTransaction, useReadContract } from "@starknet-react/core";
 import { GATE_ADAPTER_ABI } from "../../lib/abis";
 import { useStoredProof } from "../../hooks/useStoredProof";
 
 const GATE_ADAPTER_ADDRESS =
-  process.env.NEXT_PUBLIC_GATE_ADAPTER_ADDRESS || "0x0";
+  (process.env.NEXT_PUBLIC_GATE_ADAPTER_ADDRESS || "0x0") as `0x${string}`;
 
 export default function DepositPage() {
   const { address } = useAccount();
@@ -22,7 +22,23 @@ export default function DepositPage() {
     address: GATE_ADAPTER_ADDRESS,
   });
 
-  const { writeAsync } = useContractWrite({});
+  const { data: balanceData } = useReadContract({
+    functionName: "get_balance",
+    args: address ? [address] : [],
+    abi: GATE_ADAPTER_ABI as any,
+    address: GATE_ADAPTER_ADDRESS,
+    watch: true,
+  });
+
+  const formatBalance = (bal: any) => {
+    if (bal == null) return "0";
+    if (typeof bal === "bigint" || typeof bal === "number" || typeof bal === "string") return bal.toString();
+    if (bal.low !== undefined) return bal.low.toString();
+    return "0";
+  };
+  const displayBalance = formatBalance(balanceData ? (balanceData as any).balance : null);
+
+  const { sendAsync, data: txHash } = useSendTransaction({ calls: [] });
 
   const onDeposit = async () => {
     if (!address) {
@@ -44,28 +60,44 @@ export default function DepositPage() {
       const amountLow = amount & ((1n << 128n) - 1n);
       const amountHigh = amount >> 128n;
 
-      const calls =
-        contract && (contract as any).populate
-          ? [
-            (contract as any).populate("deposit", [
-              BigInt(proof.policy_id),
-              BigInt(proof.proof_id),
-              0x1n, // proof_blob_ptr (special stub value)
-              BigInt(proof.tier), // public_inputs_ptr -> tier
-              BigInt(proof.nullifier),
-              BigInt(proof.expiry_ts),
-              { low: amountLow, high: amountHigh },
-            ]),
-          ]
-          : undefined;
+      const approveCall = {
+        contractAddress: process.env.NEXT_PUBLIC_STRKBTC_ADDRESS || "0x0",
+        entrypoint: "approve",
+        calldata: [
+          GATE_ADAPTER_ADDRESS,
+          amountLow.toString(),
+          amountHigh.toString(),
+        ],
+      };
 
-      if (!calls) {
-        throw new Error("Contract not ready");
-      }
+      const depositCall = {
+        contractAddress: GATE_ADAPTER_ADDRESS,
+        entrypoint: "deposit",
+        calldata: [
+          proof.proof_id,
+          proof.policy_id,
+          proof.tier.toString(),
+          proof.public_inputs[1], // sig_r
+          proof.public_inputs[2], // sig_s
+          proof.nullifier,
+          proof.expiry_ts.toString(),
+          amountLow.toString(),
+          amountHigh.toString()
+        ],
+      };
+
+      const calls = [approveCall, depositCall];
+
+      console.log("=== DEBUG DEPOSIT TRANSACTION ===");
+      console.log("1. strkBTC Address from config:", approveCall.contractAddress);
+      console.log("2. GateAdapter Address from config:", GATE_ADAPTER_ADDRESS);
+      console.log("3. Proof object passed to deposit:", proof);
+      console.log("4. Final multicall payload:", JSON.stringify(calls, null, 2));
+      console.log("=================================");
 
       setStatusMessage("Sending transaction to Starknet...");
 
-      const tx = await writeAsync({ calls });
+      const tx = await sendAsync(calls);
 
       setStatusMessage(`Transaction sent: ${tx.transaction_hash}`);
     } catch (e: any) {
@@ -86,6 +118,13 @@ export default function DepositPage() {
             Use your locally stored proof-of-clean-funds to deposit strkBTC via the GateAdapter.
           </p>
         </header>
+
+        {address && (
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex justify-between items-center">
+            <span className="text-slate-400 text-sm">Your strkBTC Deposit Balance</span>
+            <span className="text-lg font-mono text-emerald-400">{displayBalance}</span>
+          </div>
+        )}
 
         <section className="space-y-3 bg-slate-900/60 border border-slate-800 rounded p-4">
           <label className="flex flex-col gap-1 text-sm">

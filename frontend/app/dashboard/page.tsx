@@ -18,11 +18,56 @@ interface ProofEvent {
 
 const fetcher = async (): Promise<ProofEvent[]> => {
   const provider = new RpcProvider({ nodeUrl: RPC_URL });
-  // This is a simplified example: in a real app, use getEvents with the ABI's event selector.
-  // Here we just return an empty list as a placeholder to keep the demo focused.
-  void provider;
-  void PROOF_VERIFIER_ABI;
-  return [];
+
+  try {
+    // 0x192... is the keccak hash of 'ProofVerified'
+    const PROOF_VERIFIED_KEY = "0x1927c9d9f1db7eb983b63b2ad912ef88062fa92dc0cc4dfdd6d22ef101ba0ce";
+
+    // We fetch the last 100 blocks or from genesis, depending on the network.
+    // In devnet, blocks might be few, so we query recent ones.
+    const res = await provider.getEvents({
+      address: PROOF_VERIFIER_ADDRESS,
+      keys: [[PROOF_VERIFIED_KEY]],
+      chunk_size: 50,
+    });
+
+    const events: ProofEvent[] = [];
+
+    // Map raw events to our ProofEvent interface
+    for (const edge of res.events || []) {
+      if (edge.data && edge.data.length >= 3) {
+        // According to our ABI: data = [proof_id, policy_id, tier]
+        const proof_id = "0x" + BigInt(edge.data[0]).toString(16);
+        const policy_id = BigInt(edge.data[1]).toString();
+        const tier = Number(edge.data[2]);
+
+        let timestamp = Date.now() / 1000;
+
+        // Try to get block timestamp if block_hash is available
+        if (edge.block_hash) {
+          try {
+            const block = await provider.getBlock(edge.block_hash);
+            timestamp = block.timestamp;
+          } catch (e) {
+            // Fallback to current time if block not found
+          }
+        }
+
+        events.push({
+          proof_id,
+          policy_id,
+          tier,
+          timestamp,
+        });
+      }
+    }
+
+    // Sort descending by timestamp
+    return events.sort((a, b) => b.timestamp - a.timestamp);
+  } catch (err) {
+    console.error("Error fetching ProofVerified events:", err);
+    return [];
+  }
 };
 
 export default function DashboardPage() {
@@ -38,8 +83,7 @@ export default function DashboardPage() {
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold">Compliance Dashboard</h1>
           <p className="text-sm text-slate-300">
-            View on-chain ProofVerified events and simple compliance stats.
-            For this minimal demo, stats are simulated and event loading is a placeholder.
+            View on-chain ProofVerified events and compliance stats.
           </p>
         </header>
 
@@ -61,10 +105,8 @@ export default function DashboardPage() {
         <section className="bg-slate-900/60 border border-slate-800 rounded p-4 text-sm">
           <div className="font-semibold mb-3">Recent ProofVerified events</div>
           {events.length === 0 ? (
-            <div className="text-slate-400 text-xs">
-              Events fetching is stubbed in this minimal demo. In a real setup,
-              this table would be populated from ProofVerifier events via
-              Starknet RPC.
+            <div className="text-slate-400 text-xs text-center py-4">
+              No recent proof verification events found.
             </div>
           ) : (
             <table className="w-full text-xs">
@@ -78,11 +120,11 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {events.map((ev) => (
-                  <tr key={ev.proof_id}>
-                    <td>{new Date(ev.timestamp * 1000).toLocaleString()}</td>
-                    <td>{ev.proof_id}</td>
-                    <td>{ev.policy_id}</td>
-                    <td>{ev.tier}</td>
+                  <tr key={ev.proof_id} className="border-t border-slate-800">
+                    <td className="py-2">{new Date(ev.timestamp * 1000).toLocaleString()}</td>
+                    <td className="py-2 font-mono">{ev.proof_id}</td>
+                    <td className="py-2">{ev.policy_id}</td>
+                    <td className="py-2">{ev.tier}</td>
                   </tr>
                 ))}
               </tbody>

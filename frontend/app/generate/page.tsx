@@ -8,6 +8,7 @@ import Link from "next/link";
 
 interface Policy {
   id: string;
+  name: string;
   commitment: string;
 }
 
@@ -101,7 +102,7 @@ export default function GeneratePage() {
               {policies.length === 0 && <option value="">Loading policies...</option>}
               {policies.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.id} ({p.commitment.slice(0, 8)}...)
+                  {p.name} ({p.id})
                 </option>
               ))}
             </select>
