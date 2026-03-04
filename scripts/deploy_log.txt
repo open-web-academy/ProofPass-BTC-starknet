@@ -1,0 +1,17 @@
+Working in: /mnt/c/Users/franc/Desktop/CloudMex/ProofPass-BTC-starknet/contracts_v1
+
+=== Declaring MockERC20 ===
+>> sncast --json --account devnet declare -c MockERC20 --url http://127.0.0.1:5050
+MockERC20 Class Hash: 0x0172b9257f1e4617c3ee54af6b25b65701b0834a9b0a5a3e3fe16afdb168f92f
+
+=== Deploying MockERC20 ===
+>> sncast --json --account devnet deploy --class-hash 0x0172b9257f1e4617c3ee54af6b25b65701b0834a9b0a5a3e3fe16afdb168f92f --constructor-calldata 0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691 1000000000000000000000000 0 --url http://127.0.0.1:5050
+Failed to get MockERC20 address. Output:
+[
+  {
+    "command": "deploy",
+    "contract_address": "0x069bb36a25009b9ab88beeee9fe74963be746f73b2eaa6aba87d4a157fb36841",
+    "transaction_hash": "0x07aba64f76307dd81c02d5681c5c5f6a242349e43403562f757efa658f38d522",
+    "type": "response"
+  }
+]

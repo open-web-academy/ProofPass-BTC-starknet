@@ -1,5 +1,5 @@
 [project]
-protostar_version = "0.9.1"
+protostar-version = "0.9.1"
 
 [contracts]
 policy_registry = ["contracts/policy_registry.cairo"]

@@ -1,0 +1,37 @@
+Working in: /mnt/c/Users/franc/Desktop/CloudMex/ProofPass-BTC-starknet/contracts_v1
+
+=== Declaring MockERC20 ===
+>> sncast --json --account devnet declare -c MockERC20 --url http://127.0.0.1:5050
+MockERC20 Class Hash: 0x0172b9257f1e4617c3ee54af6b25b65701b0834a9b0a5a3e3fe16afdb168f92f
+
+=== Deploying MockERC20 ===
+>> sncast --json --account devnet deploy --class-hash 0x0172b9257f1e4617c3ee54af6b25b65701b0834a9b0a5a3e3fe16afdb168f92f --constructor-calldata 0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691 1000000000000000000000000 0 --url http://127.0.0.1:5050
+strkBTC Address: 0x04b2dc6c6e2ed79ffbf197d3d3649c5c350cd61941681b088dda5f858da511a9
+Tx: 0x07f9fc51276dd3e1f893df00458954d1c676599c5eea6efef5b9ac1183cf31ff
+
+=== Declaring ProofVerifier ===
+>> sncast --json --account devnet declare -c ProofVerifier --url http://127.0.0.1:5050
+ProofVerifier Class Hash: 0x015b466668364d35d62abb133c2edf8e544e556e3c0b9ebebb63f0591b099e34
+
+=== Deploying ProofVerifier ===
+>> sncast --json --account devnet deploy --class-hash 0x015b466668364d35d62abb133c2edf8e544e556e3c0b9ebebb63f0591b099e34 --constructor-calldata 0x2f945185b4c6e1611cf3c1a6a82071537f44a1f021e1d3e86daaccccdbeee86 --url http://127.0.0.1:5050
+ProofVerifier Address: 0x00015192a3a3c7fcafb8e22a0f564a6540d6750c6e5884c3a3f695117b14b60b
+Tx: 0x00f80d6af9dad86a4b54a18693a6b310567f097bf37d302ee8ae5834b54dd590
+
+=== Declaring GateAdapter ===
+>> sncast --json --account devnet declare -c GateAdapter --url http://127.0.0.1:5050
+GateAdapter Class Hash: 0x030d1d0ca94b30f448234e8e5c2ee8556272e9b1adad4ee4b1022fc54a659a8a
+
+=== Deploying GateAdapter ===
+>> sncast --json --account devnet deploy --class-hash 0x030d1d0ca94b30f448234e8e5c2ee8556272e9b1adad4ee4b1022fc54a659a8a --constructor-calldata 0x04b2dc6c6e2ed79ffbf197d3d3649c5c350cd61941681b088dda5f858da511a9 0x00015192a3a3c7fcafb8e22a0f564a6540d6750c6e5884c3a3f695117b14b60b --url http://127.0.0.1:5050
+GateAdapter Address: 0x05c1c8868a69968541f51f0aca3afd6046ca8930f46030a9638931a78094609f
+Tx: 0x034660187ac3df26b3676df1525ada825e497c410eba1f8ccb10f456ef75167b
+
+=== Updating .env.local ===
+Updated Variables:
+  NEXT_PUBLIC_STRKBTC_ADDRESS=0x04b2dc6c6e2ed79ffbf197d3d3649c5c350cd61941681b088dda5f858da511a9
+  NEXT_PUBLIC_PROOF_VERIFIER_ADDRESS=0x00015192a3a3c7fcafb8e22a0f564a6540d6750c6e5884c3a3f695117b14b60b
+  NEXT_PUBLIC_GATE_ADAPTER_ADDRESS=0x05c1c8868a69968541f51f0aca3afd6046ca8930f46030a9638931a78094609f
+
+✅ DEPLOYMENT COMPLETE!
+Restart Next.js: ctrl+c then npm run dev

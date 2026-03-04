@@ -1,0 +1,22 @@
+Working in: /mnt/c/Users/franc/Desktop/CloudMex/ProofPass-BTC-starknet/contracts_v1
+
+=== Declaring MockERC20 ===
+>> sncast --json --account devnet declare -c MockERC20 --url http://127.0.0.1:5050
+STDERR:
+{"command":"declare","error":"Contract with class hash 0x0172b9257f1e4617c3ee54af6b25b65701b0834a9b0a5a3e3fe16afdb168f92f is already declared","type":"error"}
+
+Failed to get MockERC20 class hash. Output:
+[
+  {
+    "status": "compiling",
+    "message": "lib(proofpass_contracts) proofpass_contracts v0.1.0 (/mnt/c/Users/franc/Desktop/CloudMex/ProofPass-BTC-starknet/contracts_v1/Scarb.toml)"
+  },
+  {
+    "status": "compiling",
+    "message": "starknet-contract(proofpass_contracts) proofpass_contracts v0.1.0 (/mnt/c/Users/franc/Desktop/CloudMex/ProofPass-BTC-starknet/contracts_v1/Scarb.toml)"
+  },
+  {
+    "status": "finished",
+    "message": "`release` profile target(s) in 0 seconds"
+  }
+]

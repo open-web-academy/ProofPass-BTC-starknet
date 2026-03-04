@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "binary_entrypoint.py", line 79, in <module>
+  File "binary_entrypoint.py", line 23, in init
+  File "protostar/start.py", line 21, in main
+  File "protostar/start.py", line 47, in run_protostar
+  File "protostar/start.py", line 42, in run_protostar
+  File "asyncio/runners.py", line 44, in run
+  File "asyncio/base_events.py", line 647, in run_until_complete
+  File "protostar/protostar_cli.py", line 80, in run
+  File "protostar/protostar_cli.py", line 117, in _run_command_from_args
+  File "protostar/argument_parser/cli_app.py", line 25, in run
+  File "protostar/commands/build_command.py", line 77, in run
+  File "protostar/commands/build_command.py", line 91, in build
+  File "protostar/compiler/project_compiler.py", line 56, in compile_project
+  File "protostar/compiler/project_compiler.py", line 89, in compile_contract_from_contract_name
+  File "protostar/compiler/project_compiler.py", line 100, in compile_contract_from_contract_source_paths
+  File "protostar/starknet/compiler/starknet_compilation.py", line 108, in compile_contract
+  File "protostar/starknet/compiler/starknet_compilation.py", line 64, in preprocess_contract
+  File "starkware/cairo/lang/compiler/preprocessor/pass_manager.py", line 70, in run
+  File "starkware/cairo/lang/compiler/preprocessor/default_pass_manager.py", line 163, in run
+  File "starkware/cairo/lang/compiler/preprocessor/default_pass_manager.py", line 133, in collect_module
+  File "starkware/cairo/lang/compiler/import_loader.py", line 30, in collect_imports
+  File "starkware/cairo/lang/compiler/import_loader.py", line 81, in collect
+  File "starkware/cairo/lang/compiler/parser.py", line 251, in parse_file
+  File "starkware/cairo/lang/compiler/parser.py", line 217, in parse
+starkware.cairo.lang.compiler.parser_transformer.ParserError: /mnt/c/Users/franc/Desktop/CloudMex/ProofPass-BTC-starknet/contracts/policy_registry.cairo:10:57: Unexpected token Token('COLON', ':'). Expected one of: "*", "{".
+func policy_commitment(policy_id : felt) -> (res : felt):
+                                                        ^
+[422384] Failed to execute script 'binary_entrypoint' due to unhandled exception!
+Unexpected Protostar error. Report it here:
+https://github.com/software-mansion/protostar/issues
+

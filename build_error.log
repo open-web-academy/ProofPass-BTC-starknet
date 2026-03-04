@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "binary_entrypoint.py", line 79, in <module>
+  File "binary_entrypoint.py", line 23, in init
+  File "protostar/start.py", line 19, in main
+  File "protostar/composition_root.py", line 73, in build_di_container
+  File "protostar/configuration_file/configuration_file_factory.py", line 38, in create
+protostar.protostar_exception.ProtostarException: /mnt/c/Users/franc/Desktop/CloudMex/ProofPass-BTC-starknet/protostar.toml must specify `protostar-version` for example:
+
+            [project]
+            protostar-version = ?.?.?
+            
+[422329] Failed to execute script 'binary_entrypoint' due to unhandled exception!
