@@ -206,7 +206,7 @@ export default function DevDashboard() {
                 contractAddress,
                 entrypoint,
                 calldata
-            });
+            }, "latest");
 
             setContractTests(prev => ({
                 ...prev, [name]: { result: JSON.stringify(result), loading: false, error: null }
