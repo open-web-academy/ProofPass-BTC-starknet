@@ -66,6 +66,11 @@ export default function DevDashboard() {
         STRKBTC: { address: ENV_VARS.NEXT_PUBLIC_STRKBTC_ADDRESS, classHash: null, isDeployed: null, loading: false },
     });
 
+    const [networkMismatch, setNetworkMismatch] = useState<{ detected: boolean; details: string }>({
+        detected: false,
+        details: ""
+    });
+
     const [contractTests, setContractTests] = useState<Record<string, { result: string | null, loading: boolean, error: string | null }>>({});
     const [txTest, setTxTest] = useState<{ loading: boolean; hash: string | null; error: string | null; status: string }>({
         loading: false,
@@ -150,14 +155,20 @@ export default function DevDashboard() {
             const chainId = await provider.getChainId();
 
             setRpcStatus("CONNECTED");
+
+            // SN_SEPOLIA = 0x534e5f5345504f4c4941
+            // SN_MAIN = 0x534e5f4d41494e
+            const isSepolia = chainId === "0x534e5f5345504f4c4941";
+            const isMainnet = chainId === "0x534e5f4d41494e";
+
             setNetworkInfo({
-                chain: "Starknet Sepolia", // or extract from chainId if mainnet
+                chain: isSepolia ? "Starknet Sepolia" : isMainnet ? "Starknet Mainnet" : "Custom/Devnet",
                 url: ENV_VARS.NEXT_PUBLIC_STARKNET_RPC_URL || "Default provider endpoint",
                 block: block.block_number,
                 timestamp: block.timestamp,
                 chainId: chainId
             });
-            console.log("[RPC] Block fetched successfully:", block.block_number);
+            console.log("[RPC] Connected to:", isSepolia ? "Sepolia" : "Other", "Block:", block.block_number);
         } catch (err: any) {
             setRpcStatus("FAILED");
             console.error("[RPC Error] Failed to fetch block:", err.message);
@@ -166,10 +177,14 @@ export default function DevDashboard() {
 
     const checkContracts = async () => {
         const keys = Object.keys(contractsStatus);
+        let missingCount = 0;
 
         for (const key of keys) {
             const address = contractsStatus[key].address;
-            if (!address) continue;
+            if (!address || address === "0x0") {
+                missingCount++;
+                continue;
+            }
 
             setContractsStatus(prev => ({
                 ...prev,
@@ -177,19 +192,32 @@ export default function DevDashboard() {
             }));
 
             try {
+                // Potential fix: some providers might struggle with pending/latest for getClassHashAt
                 const classHash = await provider.getClassHashAt(address);
                 setContractsStatus(prev => ({
                     ...prev,
                     [key]: { address, classHash, isDeployed: true, loading: false }
                 }));
-                console.log(`[Contract] ${key} is deployed at ${address}`);
+                console.log(`[Contract] ${key} verified at ${address}`);
             } catch (err: any) {
                 setContractsStatus(prev => ({
                     ...prev,
                     [key]: { address, classHash: null, isDeployed: false, loading: false }
                 }));
-                console.error(`[Contract Error] ${key} at ${address} - Not deployed`);
+                console.error(`[Contract Error] ${key} not found at ${address}`);
+
+                // Detailed diagnostic for network mismatch
+                if (networkInfo?.chainId === "0x534e5f5345504f4c4941") { // Sepolia
+                    setNetworkMismatch({
+                        detected: true,
+                        details: "CRITICAL: You are connected to SEPOLIA, but the contract address seems invalid or not deployed there. Check if these are LOCAL DEVNET addresses."
+                    });
+                }
             }
+        }
+
+        if (missingCount > 0) {
+            console.warn(`[Warning] ${missingCount} contract addresses are missing in .env`);
         }
     };
 
@@ -283,6 +311,21 @@ export default function DevDashboard() {
                         </button>
                     </div>
                 </div>
+
+                {/* Critical Warnings */}
+                {networkMismatch.detected && (
+                    <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <XCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+                        <div>
+                            <h4 className="text-red-400 font-bold text-sm">Deployment Mismatch Detected</h4>
+                            <p className="text-red-300/80 text-xs mt-1 leading-relaxed">
+                                {networkMismatch.details}
+                                <br />
+                                <span className="mt-2 block font-bold">Action: Verify your Vercel Environment Variables or .env.local matches Sepolia addresses.</span>
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
