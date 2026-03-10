@@ -164,6 +164,8 @@
 
         // Use our saved library reference, NOT window.starknet (which is now the wallet)
         const lib = window.__StarknetLib;
+        // Alchemy v0.7 RPC (v2 URL) works better with 'pending' block tag
+        const RPC_URL = 'https://starknet-sepolia.g.alchemy.com/v2/MnGSA2Mjm9SFFPUCuXWdP';
 
         const logEl = document.getElementById('log');
         function log(msg, err = false) {
@@ -216,7 +218,11 @@
 
                     st.innerHTML = '<div class="loader"></div>Declarando clase...';
                     try {
-                        const d = await account.declare({ contract: sierra, casm });
+                        // Version 2 (maxFee) is much more robust for large contract declarations
+                        const d = await account.declare({ contract: sierra, casm }, {
+                            version: 2,
+                            maxFee: '0x2386f26fc10000' // 0.01 ETH
+                        });
                         log(`TX declare ${name}: ${d.transaction_hash}`);
                         st.innerHTML = '<div class="loader"></div>Esperando confirmación de declare...';
                         await account.waitForTransaction(d.transaction_hash);

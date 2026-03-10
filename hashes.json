@@ -1,0 +1,18 @@
+{
+  "MockERC20": {
+    "classHash": "0x3ff0ea653d6e89052d99ff854b594ea9b25a468a42250adfd43d1637e8cd451",
+    "compiledClassHash": "0x7343e7dc48579dea24f52094e8f488473ad3e660486840c5c4d2fb8fb1f5969"
+  },
+  "PolicyRegistry": {
+    "classHash": "0x2c8ccbfcd9ddf8e43f286c463b366e87983a07435af329ccfc7949ffd29cbf1",
+    "compiledClassHash": "0x665ac3daa84100196776f3f56a54683eb028e063a46e1b0ee61554ff2516751"
+  },
+  "ProofVerifier": {
+    "classHash": "0x1b512698effee953910a0b7ac7bb0f54ab5ec20487e159d070d7ced59a4e45c",
+    "compiledClassHash": "0xe05c9d7424925ff8dde73bb0309d65a9dbc4bd8a7fb9c62341a1f7d24ddfe7"
+  },
+  "GateAdapter": {
+    "classHash": "0x1432ac9b910f6f8f09c3f7ffeede8a62af1b729e86c1fab9293f811b12136d1",
+    "compiledClassHash": "0x7010aa6afc4bef0c8401ee45de77a49139ab9a11fee2d958a8ab90acc583262"
+  }
+}
