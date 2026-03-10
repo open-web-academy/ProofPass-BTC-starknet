@@ -7,7 +7,7 @@ import { RpcProvider } from "starknet";
 const PROOF_VERIFIER_ADDRESS =
   process.env.NEXT_PUBLIC_PROOF_VERIFIER_ADDRESS || "0x0";
 const RPC_URL =
-  process.env.NEXT_PUBLIC_STARKNET_RPC_URL || "http://127.0.0.1:5050";
+  process.env.NEXT_PUBLIC_STARKNET_RPC_URL || "http://127.0.0.1:5050/rpc";
 
 interface ProofEvent {
   proof_id: string;
@@ -26,6 +26,8 @@ const fetcher = async (): Promise<ProofEvent[]> => {
     // We fetch the last 100 blocks or from genesis, depending on the network.
     // In devnet, blocks might be few, so we query recent ones.
     const res = await provider.getEvents({
+      from_block: { block_number: 0 },
+      to_block: { tag: "latest" } as any,
       address: PROOF_VERIFIER_ADDRESS,
       keys: [[PROOF_VERIFIED_KEY]],
       chunk_size: 50,

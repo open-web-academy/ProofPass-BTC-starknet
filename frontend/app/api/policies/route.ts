@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { RpcProvider, Contract } from "starknet";
 
 const RPC_URL =
-  process.env.NEXT_PUBLIC_STARKNET_RPC_URL || "http://127.0.0.1:5050";
+  process.env.NEXT_PUBLIC_STARKNET_RPC_URL || "http://127.0.0.1:5050/rpc";
 const POLICY_REGISTRY_ADDRESS =
   process.env.NEXT_PUBLIC_POLICY_REGISTRY_ADDRESS || "0x0";
 
@@ -35,7 +35,11 @@ export async function GET() {
     const policies = [];
     for (const def of policyDefinitions) {
       try {
-        const res = await contract.call("get_policy_commitment", [BigInt(def.id)]);
+        const res = await contract.call(
+          "get_policy_commitment",
+          [BigInt(def.id)],
+          { blockIdentifier: "latest" as any }
+        );
         const commitment =
           Array.isArray(res) && res.length > 0
             ? res[0].toString()

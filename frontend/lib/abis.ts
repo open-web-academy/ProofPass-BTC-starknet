@@ -6,23 +6,24 @@ export const GATE_ADAPTER_ABI = [
     name: "deposit",
     stateMutability: "external",
     inputs: [
-      { name: "policy_id", type: "felt" },
       { name: "proof_id", type: "felt" },
-      { name: "proof_blob_ptr", type: "felt" },
-      { name: "public_inputs_ptr", type: "felt" },
+      { name: "policy_id", type: "felt" },
+      { name: "tier", type: "felt" },
+      { name: "sig_r", type: "felt" },
+      { name: "sig_s", type: "felt" },
       { name: "nullifier", type: "felt" },
       { name: "expiry_ts", type: "felt" },
-      { name: "amount", type: "Uint256" }
+      { name: "amount", type: "Uint256" },
     ],
-    outputs: []
+    outputs: [],
   },
   {
     type: "function",
     name: "get_balance",
     stateMutability: "view",
-    inputs: [{ name: "user", type: "felt" }],
-    outputs: [{ name: "balance", type: "Uint256" }]
-  }
+    inputs: [{ name: "user", type: "core::starknet::contract_address::ContractAddress" }],
+    outputs: [{ name: "balance", type: "Uint256" }],
+  },
 ] as const;
 
 export const PROOF_VERIFIER_ABI = [
@@ -33,8 +34,8 @@ export const PROOF_VERIFIER_ABI = [
     data: [
       { name: "proof_id", type: "felt" },
       { name: "policy_id", type: "felt" },
-      { name: "tier", type: "felt" }
-    ]
-  }
+      { name: "tier", type: "felt" },
+    ],
+  },
 ] as const;
 

@@ -4,19 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Starknet Sepolia Auto-Deployer</title>
-    <!-- Starknet.js Core -->
+    <!-- Starknet.js Core - load FIRST and save reference before wallet overwrites window.starknet -->
     <script src="https://unpkg.com/starknet@6.11.0/dist/index.js"></script>
-    <!-- get-starknet Library -->
-    <script src="https://unpkg.com/get-starknet@3.3.3/dist/index.min.js"></script>
+    <script>
+        // Save library reference before any wallet extension can overwrite window.starknet
+        window.__StarknetLib = window.starknet;
+        console.log('StarknetLib saved:', window.__StarknetLib ? 'OK' : 'FAILED');
+    </script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: #0f172a;
             color: white;
             padding: 2rem;
             max-width: 900px;
             margin: auto;
-            line-height: 1.6;
         }
 
         .card {
@@ -25,7 +27,6 @@
             border-radius: 0.8rem;
             margin-bottom: 1.5rem;
             border: 1px solid #334155;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
 
         h1 {
@@ -42,36 +43,31 @@
             border-radius: 0.4rem;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.2s;
             font-size: 1rem;
         }
 
         button:hover {
             background: #2563eb;
-            transform: translateY(-1px);
         }
 
         button:disabled {
             background: #64748b;
             cursor: not-allowed;
-            transform: none;
         }
 
         .success {
             color: #34d399;
-            font-size: 0.9rem;
             margin-top: 0.8rem;
             border-left: 4px solid #059669;
-            padding: 0.5rem 0.5rem 0.5rem 1rem;
+            padding: 0.5rem 1rem;
             background: #064e3b33;
         }
 
         .error {
             color: #f87171;
-            font-size: 0.9rem;
             margin-top: 0.8rem;
             border-left: 4px solid #dc2626;
-            padding: 0.5rem 0.5rem 0.5rem 1rem;
+            padding: 0.5rem 1rem;
             background: #450a0a33;
         }
 
@@ -84,6 +80,10 @@
             gap: 2rem;
         }
 
+        .step:last-child {
+            border-bottom: none;
+        }
+
         .step-info {
             flex: 1;
         }
@@ -91,11 +91,11 @@
         .hash {
             font-family: monospace;
             background: #020617;
-            padding: 0.2rem 0.5rem;
+            padding: 0.2rem 0.4rem;
             border-radius: 0.3rem;
-            display: inline-block;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #94a3b8;
+            word-break: break-all;
         }
 
         pre#log {
@@ -103,31 +103,25 @@
             padding: 1rem;
             border-radius: 0.5rem;
             border: 1px solid #334155;
-            height: 180px;
+            height: 200px;
             overflow-y: scroll;
             font-size: 0.8rem;
-            color: #94a3b8;
-            margin-top: 1rem;
         }
 
         .loader {
             border: 2px solid #334155;
             border-top: 2px solid #3b82f6;
             border-radius: 50%;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             animation: spin 1s linear infinite;
             display: inline-block;
             vertical-align: middle;
-            margin-right: 5px;
+            margin-right: 4px;
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
+            to {
                 transform: rotate(360deg);
             }
         }
@@ -138,174 +132,179 @@
     <h1>🚀 ProofPass Sepolia Auto-Deployer</h1>
 
     <div class="card">
-        <h3>1. Conexión de Wallet</h3>
-        <button id="connectBtn">Conectar Argent X / Braavos</button>
-        <span id="accountStatus" style="margin-left: 1rem; font-family: monospace;">No conectado</span>
-        <div id="networkError" class="error" style="display:none;">⚠️ Debes estar en la red <b>Starknet Sepolia</b>.
-        </div>
+        <h3>1. Conectar Wallet</h3>
+        <button id="connectBtn">Conectar Wallet</button>
+        <span id="accountStatus" style="margin-left:1rem; font-size: 0.9rem;">No conectado</span>
+        <div id="networkError" class="error" style="display:none; margin-top: 0.5rem;">⚠️ Cambia a <b>Starknet
+                Sepolia</b> en tu wallet.</div>
     </div>
 
     <div class="card">
-        <h3>2. Despliegue de Contratos</h3>
+        <h3>2. Desplegar Contratos</h3>
+        <p style="color: #94a3b8; font-size: 0.9rem;">⚠️ Despliega uno por uno en orden. Espera "✅ Éxito" antes del
+            siguiente.</p>
         <div id="steps"></div>
     </div>
 
     <div class="card">
-        <h3>3. Datos para Vercel (.env.local)</h3>
-        <pre id="finalResults">Esperando despliegues...</pre>
-        <button id="copyBtn" disabled style="background: #10b981;">Copiar al Portapapeles</button>
+        <h3>3. Variables para .env.local / Vercel</h3>
+        <pre id="finalResults">Esperando...</pre>
+        <button id="copyBtn" disabled style="background: #10b981; margin-top: 0.5rem;">Copiar al Portapapeles</button>
     </div>
 
     <div class="card">
-        <h3>🖥️ Registro Detallado (Logs)</h3>
-        <pre id="log">--- Herramienta Iniciada ---\n</pre>
+        <h3>Logs</h3>
+        <pre id="log">--- Iniciando ---\n</pre>
     </div>
 
     <script>
         const ARTIFACTS = __ARTIFACTS_JSON__;
-        let wallet, account;
+        let account;
         const addresses = {};
-        const stepsDiv = document.getElementById('steps');
-        const logPre = document.getElementById('log');
 
-        function addLog(msg, isError = false) {
-            const span = document.createElement('span');
-            span.style.color = isError ? '#f87171' : '#94a3b8';
-            span.innerText = `[${new Date().toLocaleTimeString()}] ${msg}\n`;
-            logPre.appendChild(span);
-            logPre.scrollTop = logPre.scrollHeight;
+        // Use our saved library reference, NOT window.starknet (which is now the wallet)
+        const lib = window.__StarknetLib;
+
+        const logEl = document.getElementById('log');
+        function log(msg, err = false) {
+            const s = document.createElement('span');
+            s.style.color = err ? '#f87171' : '#94a3b8';
+            s.innerText = `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+            logEl.appendChild(s);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Verify library loaded correctly
+        if (lib && lib.hash) {
+            log('✅ Starknet.js cargado correctamente.');
+        } else {
+            log('❌ Error: Starknet.js no cargó. Prueba recargar la página.', true);
         }
 
         function updateFinal() {
-            const pre = document.getElementById('finalResults');
-            let txt = "";
-            if (addresses['MockERC20']) txt += "NEXT_PUBLIC_STRKBTC_ADDRESS=" + addresses['MockERC20'] + "\n";
-            if (addresses['ProofVerifier']) txt += "NEXT_PUBLIC_PROOF_VERIFIER_ADDRESS=" + addresses['ProofVerifier'] + "\n";
-            if (addresses['GateAdapter']) txt += "NEXT_PUBLIC_GATE_ADAPTER_ADDRESS=" + addresses['GateAdapter'] + "\n";
-            if (addresses['PolicyRegistry']) txt += "NEXT_PUBLIC_POLICY_REGISTRY_ADDRESS=" + addresses['PolicyRegistry'] + "\n";
-            pre.innerText = txt || "Esperando despliegues...";
+            let txt = '';
+            if (addresses.MockERC20) txt += 'NEXT_PUBLIC_STRKBTC_ADDRESS=' + addresses.MockERC20 + '\n';
+            if (addresses.ProofVerifier) txt += 'NEXT_PUBLIC_PROOF_VERIFIER_ADDRESS=' + addresses.ProofVerifier + '\n';
+            if (addresses.GateAdapter) txt += 'NEXT_PUBLIC_GATE_ADAPTER_ADDRESS=' + addresses.GateAdapter + '\n';
+            if (addresses.PolicyRegistry) txt += 'NEXT_PUBLIC_POLICY_REGISTRY_ADDRESS=' + addresses.PolicyRegistry + '\n';
+            document.getElementById('finalResults').innerText = txt || 'Esperando...';
             if (txt) document.getElementById('copyBtn').disabled = false;
         }
 
         const names = ['MockERC20', 'ProofVerifier', 'GateAdapter', 'PolicyRegistry'];
-
         names.forEach(name => {
             const div = document.createElement('div');
             div.className = 'step';
             div.innerHTML = `
-                <div class="step-info">
-                    <strong>${name}</strong>
-                    <div id="status-${name}" style="font-size: 0.8rem; color: #64748b;">Listo para empezar</div>
-                </div>
-                <button id="btn-${name}" disabled>Desplegar</button>
-            `;
-            stepsDiv.appendChild(div);
+            <div class="step-info">
+                <strong>${name}</strong>
+                <div id="s-${name}" style="font-size:0.8rem; color:#64748b;">En espera de conexión...</div>
+            </div>
+            <button id="b-${name}" disabled>Desplegar</button>
+        `;
+            document.getElementById('steps').appendChild(div);
 
-            document.getElementById('btn-' + name).onclick = async () => {
-                const btn = document.getElementById('btn-' + name);
-                const status = document.getElementById('status-' + name);
+            document.getElementById('b-' + name).onclick = async () => {
+                const btn = document.getElementById('b-' + name);
+                const st = document.getElementById('s-' + name);
                 btn.disabled = true;
-                addLog(`Iniciando ${name}...`);
-
                 try {
                     const { sierra, casm } = ARTIFACTS[name];
-                    // Usamos window.starknet para el core si está disponible
-                    const lib = window.starknet || window.Starknet;
-                    const sierraClassHash = lib.hash.computeSierraContractClassHash(sierra);
+                    // Use the saved library reference to compute hash
+                    const classHash = lib.hash.computeSierraContractClassHash(sierra);
+                    log(`${name}: classHash = ${classHash}`);
 
-                    status.innerHTML = '<div class="loader"></div> Declarando clase...';
+                    st.innerHTML = '<div class="loader"></div>Declarando clase...';
                     try {
-                        const d = await account.declare({ contract: sierra, casm: casm });
-                        addLog(`TX Declarar: ${d.transaction_hash}`);
+                        const d = await account.declare({ contract: sierra, casm });
+                        log(`TX declare ${name}: ${d.transaction_hash}`);
+                        st.innerHTML = '<div class="loader"></div>Esperando confirmación de declare...';
                         await account.waitForTransaction(d.transaction_hash);
+                        log(`${name}: clase declarada.`);
                     } catch (e) {
-                        if (e.message.toLowerCase().includes("already declared")) {
-                            addLog(`Clase ya declarada.`);
-                        } else throw e;
+                        if (!e.message.toLowerCase().includes('already declared')) throw e;
+                        log(`${name}: clase ya declarada, continuando.`);
                     }
 
                     let calldata = [];
-                    if (name === 'MockERC20') calldata = [account.address, "1000000000", "0"];
-                    if (name === 'ProofVerifier') calldata = ["0x6eb62dc263aa156dd37a146aa1d1021357bfffa47ca23479a4c3844d9282ce6"];
-                    if (name === 'GateAdapter') calldata = [addresses['MockERC20'], addresses['ProofVerifier']];
+                    if (name === 'MockERC20') calldata = [account.address, '1000000000', '0'];
+                    if (name === 'ProofVerifier') calldata = ['0x6eb62dc263aa156dd37a146aa1d1021357bfffa47ca23479a4c3844d9282ce6'];
+                    if (name === 'GateAdapter') calldata = [addresses.MockERC20, addresses.ProofVerifier];
                     if (name === 'PolicyRegistry') calldata = [account.address];
 
-                    status.innerHTML = '<div class="loader"></div> Desplegando instancia...';
+                    st.innerHTML = '<div class="loader"></div>Desplegando instancia...';
                     const { transaction_hash, contract_address } = await account.deployContract({
-                        classHash: sierraClassHash,
-                        constructorCalldata: calldata
+                        classHash, constructorCalldata: calldata
                     });
-
-                    addLog(`TX Deploy: ${transaction_hash}`);
+                    log(`TX deploy ${name}: ${transaction_hash}`);
+                    st.innerHTML = '<div class="loader"></div>Esperando confirmación de deploy...';
                     await account.waitForTransaction(transaction_hash);
 
                     addresses[name] = contract_address;
-                    status.className = "success";
-                    status.innerHTML = "Éxito: " + contract_address;
-                    addLog(`Contrato ${name} desplegado.`);
+                    st.className = 'success';
+                    st.innerHTML = '✅ <span class="hash">' + contract_address + '</span>';
+                    log(`¡${name} desplegado en ${contract_address}!`);
                     updateFinal();
                 } catch (e) {
-                    addLog(`ERROR: ${e.message}`, true);
-                    status.className = "error";
-                    status.innerHTML = "Error: " + e.message;
+                    log(`ERROR ${name}: ${e.message}`, true);
+                    st.className = 'error';
+                    st.innerHTML = 'Error: ' + e.message;
                     btn.disabled = false;
                 }
             };
         });
 
         document.getElementById('connectBtn').onclick = async () => {
-            addLog("Buscando extensión de Starknet...");
-            try {
-                // Buscamos cualquier rastro de connect en window
-                let connectFn = null;
-                const globals = ['GetStarknet', 'getStarknet', 'starknet', 'starknet_argent', 'starknet_braavos'];
+            log('Escaneando wallets disponibles...');
 
-                for (let g of globals) {
-                    if (window[g]) {
-                        if (typeof window[g].connect === 'function') connectFn = (opt) => window[g].connect(opt);
-                        else if (typeof window[g] === 'function') connectFn = window[g];
-                    }
-                }
+            let walletObj = null;
+            const skip = new Set(['window', 'self', 'top', 'parent', 'frames', 'document', 'location', 'history', 'navigator', 'screen', 'performance', 'crypto', 'indexedDB', 'localStorage', 'sessionStorage', 'caches', 'console', 'alert', 'confirm', 'prompt', '__StarknetLib']);
 
-                if (!connectFn) {
-                    // Escaneo total por si acaso
-                    for (let key in window) {
-                        if (key.toLowerCase().includes('stark') && window[key] && typeof window[key].connect === 'function') {
-                            addLog(`Encontrado en window.${key}`);
-                            connectFn = (opt) => window[key].connect(opt);
+            for (const key of Object.getOwnPropertyNames(window)) {
+                try {
+                    if (skip.has(key)) continue;
+                    const val = window[key];
+                    if (val && typeof val === 'object' && (typeof val.enable === 'function' || typeof val.request === 'function')) {
+                        if (val.id || val.name || val.version || val.icon) {
+                            log(`Wallet: window.${key} (${val.id || val.name || 'sin nombre'})`);
+                            walletObj = val;
                             break;
                         }
                     }
-                }
+                } catch (e) { }
+            }
 
-                if (!connectFn) throw new Error("No se detectó Argent X o Braavos. ¿Están instalados?");
+            if (!walletObj) {
+                const starkKeys = Object.keys(window).filter(k => k.toLowerCase().includes('stark') || k.toLowerCase().includes('wallet') || k.toLowerCase().includes('ready') || k.toLowerCase().includes('argent') || k.toLowerCase().includes('braavos'));
+                log('Keys relevantes en window: ' + (starkKeys.join(', ') || 'ninguna'), true);
+                log('No se detectó ninguna wallet compatible.', true);
+                return;
+            }
 
-                wallet = await connectFn({ modalMode: "alwaysAsk" });
+            try {
+                await walletObj.enable();
+                account = walletObj.account;
+                const chainId = await account.getChainId();
+                log(`Red: ${chainId}`);
 
-                if (wallet) {
-                    await wallet.enable();
-                    account = wallet.account;
-                    const chainId = await account.getChainId();
-                    addLog(`Red detectada: ${chainId}`);
-
-                    if (!chainId.toLowerCase().includes("sepolia") && chainId !== "0x534e5f5345504f4c4941") {
-                        document.getElementById('networkError').style.display = 'block';
-                        addLog("CAMBIA A RED SEPOLIA EN TU WALLET", true);
-                    } else {
-                        document.getElementById('networkError').style.display = 'none';
-                        document.getElementById('accountStatus').innerText = "✅ Conectado";
-                        document.querySelectorAll('button').forEach(b => { if (b.id !== 'copyBtn') b.disabled = false; });
-                        addLog("Wallet vinculada correctamente.");
-                    }
+                const isSepolia = chainId === '0x534e5f5345504f4c4941' || chainId.toLowerCase().includes('sepolia');
+                if (!isSepolia) {
+                    document.getElementById('networkError').style.display = 'block';
+                    log('ERROR: Cambia tu wallet a red Sepolia.', true);
+                } else {
+                    document.getElementById('networkError').style.display = 'none';
+                    document.getElementById('accountStatus').innerText = '✅ ' + account.address.slice(0, 12) + '...';
+                    document.querySelectorAll('button').forEach(b => { if (b.id !== 'copyBtn') b.disabled = false; });
+                    log('¡Listo! Puedes desplegar los contratos.');
                 }
             } catch (e) {
-                addLog(`Fallo de conexión: ${e.message}`, true);
+                log('Error al conectar: ' + e.message, true);
             }
         };
 
         document.getElementById('copyBtn').onclick = () => {
             navigator.clipboard.writeText(document.getElementById('finalResults').innerText);
-            alert("¡Copiado! Ahora pégalo en .env.local de Vercel.");
+            alert('¡Copiado! Ahora pégalo en .env.local y en Vercel.');
         };
     </script>
 </body>

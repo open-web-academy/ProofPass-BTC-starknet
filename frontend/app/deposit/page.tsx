@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useContract, useSendTransaction, useReadContract } from "@starknet-react/core";
+import { useAccount, useContract, useSendTransaction, useReadContract, useProvider } from "@starknet-react/core";
 import { GATE_ADAPTER_ABI } from "../../lib/abis";
 import { useStoredProof } from "../../hooks/useStoredProof";
 
@@ -10,6 +10,7 @@ const GATE_ADAPTER_ADDRESS =
 
 export default function DepositPage() {
   const { address } = useAccount();
+  const { provider } = useProvider();
   const { proof } = useStoredProof();
 
   const [manualProofId, setManualProofId] = useState<string>(proof?.proof_id ?? "");
@@ -55,6 +56,20 @@ export default function DepositPage() {
     setStatusMessage("Preparing transaction...");
 
     try {
+      setStatusMessage("Checking network for required contracts...");
+      try {
+        await provider.getClassHashAt(process.env.NEXT_PUBLIC_STRKBTC_ADDRESS || "0x0");
+      } catch (err) {
+        throw new Error("strkBTC contract is not deployed on the active network. Please connect to the correct network (e.g. Sepolia) and update your .env.local variables.");
+      }
+      try {
+        await provider.getClassHashAt(GATE_ADAPTER_ADDRESS);
+      } catch (err) {
+        throw new Error("GateAdapter contract is not deployed on the active network. Please connect to the correct network (e.g. Sepolia) and update your .env.local variables.");
+      }
+
+      setStatusMessage("Preparing transaction...");
+
       const amountStr = proof.amount ?? "1";
       const amount = BigInt(Math.floor(parseFloat(amountStr) * 1e6) || 1n);
       const amountLow = amount & ((1n << 128n) - 1n);

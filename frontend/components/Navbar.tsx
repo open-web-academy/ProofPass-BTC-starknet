@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { WalletConnector } from "./WalletConnector";
+import dynamic from "next/dynamic";
 import { ShieldAlert } from "lucide-react";
+
+const WalletConnector = dynamic(
+    () => import("./WalletConnector").then((mod) => mod.WalletConnector),
+    { ssr: false }
+);
 
 export function Navbar() {
     const pathname = usePathname();
@@ -39,8 +44,8 @@ export function Navbar() {
                                         key={link.href}
                                         href={link.href}
                                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                                                ? "bg-zinc-800/50 text-white"
-                                                : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
+                                            ? "bg-zinc-800/50 text-white"
+                                            : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
                                             }`}
                                     >
                                         {link.label}
