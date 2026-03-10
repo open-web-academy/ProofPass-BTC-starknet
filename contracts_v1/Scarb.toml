@@ -12,3 +12,8 @@ casm = true
 
 [lib]
 name = "proofpass_contracts"
+
+# Release profile: disables debug symbols and replaces human-readable Sierra IDs
+# with numeric ones. Reduces the compiled class size significantly.
+[profile.release]
+cairo = { sierra-replace-ids = false, unstable-add-statements-code-locations-debug-info = false, unstable-add-statements-value-hints-debug-info = false }
